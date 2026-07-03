@@ -384,14 +384,19 @@ Antworte mit GENAU diesem JSON und NICHTS sonst (kein Markdown, kein Vorwort):
 Halte alle Texte unter 16 Wörtern. Antworte auf Deutsch.`;
 
 async function callClaude({ system, content }) {
+  const headers = {
+    "Content-Type": "application/json",
+    "anthropic-version": "2023-06-01",
+    "anthropic-dangerous-direct-browser-access": "true",
+  };
+  // In dev the Vite proxy forwards the browser key to Anthropic; in production
+  // the Vercel API route adds the server-side ANTHROPIC_API_KEY.
+  if (import.meta.env.DEV) {
+    headers["x-api-key"] = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
+  }
   const res = await fetch("/api/anthropic/v1/messages", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY || "",
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
+    headers,
     body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1000, system, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) throw new Error(`API-Fehler (${res.status})`);
@@ -539,7 +544,28 @@ const CSS = `
 @keyframes nl-pulse-ring{ 0%{ transform:scale(1); opacity:.15; } 100%{ transform:scale(1.35); opacity:0; } }
 @media(prefers-reduced-motion:reduce){ *{ transition:none!important; animation:none!important; } }
 @media print{ .nl-noprint{ display:none!important; } .nl-shell{ padding:0; } }
+.nl-section-card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; }
+.nl-section-card:last-child{ margin-bottom:0; }
+.nl-section-header{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.nl-section-number{ width:24px; height:24px; border-radius:50%; background:var(--ink); color:#fff; font-size:11px; font-family:'IBM Plex Mono',monospace; display:grid; place-items:center; flex:none; }
+.nl-section-title{ font-weight:600; font-size:14px; }
+.nl-sticky-col{ position:sticky; top:18px; }
+.nl-audience-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media(max-width:860px){ .nl-sticky-col{ position:relative; top:auto; } .nl-audience-grid{ grid-template-columns:1fr; } }
 `;
+
+function SectionCard({ number, title, optional, children }) {
+  return (
+    <div className="nl-section-card">
+      <div className="nl-section-header">
+        <span className="nl-section-number">{number}</span>
+        <span className="nl-section-title">{title}</span>
+        {optional && <span className="nl-pill">optional</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /* ----------------------------------------------------------------------------
    INTRO
@@ -1341,38 +1367,45 @@ export default function App() {
                 </p>
                 <div className="nl-two">
                   <div>
-                    <div style={{ marginBottom: 14 }}>
-                      <label className="nl-label">Produktname</label>
-                      <input className="nl-input" value={product} onChange={(e) => setProduct(e.target.value)} placeholder="z. B. Aurora E-Bike" />
-                    </div>
-                    <div style={{ marginBottom: 14 }}>
-                      <label className="nl-label">Material — Beschreibung, Werbetext, Claims, Quellen</label>
-                      <textarea className="nl-textarea" value={material} onChange={(e) => setMaterial(e.target.value)} placeholder="Werbetext, Slogan, Produktbeschreibung, Landingpage-Copy … hier einfügen" />
-                    </div>
-                    <div style={{ marginBottom: 14 }}>
-                      <label className="nl-label">Werbung als Bild (optional)</label>
-                      {image ? (
-                        <div style={{ display: "flex", gap: 10, alignItems: "center", border: "1px solid var(--line)", borderRadius: 12, padding: 10 }}>
-                          <img src={image.dataUrl} alt="" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8 }} />
-                          <span style={{ fontSize: 13, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{image.name}</span>
-                          <button className="nl-chip" onClick={() => setImage(null)}><X size={13} /> entfernen</button>
-                        </div>
-                      ) : (
-                        <div className="nl-drop" onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files[0]); }}>
-                          <ImagePlus size={18} style={{ verticalAlign: "-3px", marginRight: 6 }} /> Bild ablegen oder auswählen
-                        </div>
-                      )}
-                      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => onFile(e.target.files[0])} />
-                    </div>
-                    <label className="nl-label">Zielgruppe — Basis für den Soll-Vorschlag</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-                      <input className="nl-input" value={audience.wer} onChange={(e) => setAudience({ ...audience, wer: e.target.value })} placeholder="Wer kauft?" />
-                      <input className="nl-input" value={audience.gefuehl} onChange={(e) => setAudience({ ...audience, gefuehl: e.target.value })} placeholder="Vorkauf-Gefühl?" />
-                      <input className="nl-input" value={audience.kategorie} onChange={(e) => setAudience({ ...audience, kategorie: e.target.value })} placeholder="Kategorie" />
-                      <input className="nl-input" value={audience.niveau} onChange={(e) => setAudience({ ...audience, niveau: e.target.value })} placeholder="Preis-/Statusniveau" />
-                    </div>
-                    <label className="nl-label">Prior der Zielgruppe (KI + Team)</label>
-                    <div style={{ marginBottom: 14, border: "1px solid var(--line)", borderRadius: 12, padding: 14 }}>
+                    <SectionCard number="1" title="Material eingeben">
+                      <div style={{ marginBottom: 14 }}>
+                        <label className="nl-label">Produktname</label>
+                        <input className="nl-input" value={product} onChange={(e) => setProduct(e.target.value)} placeholder="z. B. Aurora E-Bike" />
+                      </div>
+                      <div style={{ marginBottom: 14 }}>
+                        <label className="nl-label">Material — Beschreibung, Werbetext, Claims, Quellen</label>
+                        <textarea className="nl-textarea" value={material} onChange={(e) => setMaterial(e.target.value)} placeholder="Werbetext, Slogan, Produktbeschreibung, Landingpage-Copy … hier einfügen" />
+                      </div>
+                      <div>
+                        <label className="nl-label">Werbung als Bild (optional)</label>
+                        {image ? (
+                          <div style={{ display: "flex", gap: 10, alignItems: "center", border: "1px solid var(--line)", borderRadius: 12, padding: 10 }}>
+                            <img src={image.dataUrl} alt="" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8 }} />
+                            <span style={{ fontSize: 13, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{image.name}</span>
+                            <button className="nl-chip" onClick={() => setImage(null)}><X size={13} /> entfernen</button>
+                          </div>
+                        ) : (
+                          <div className="nl-drop" onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files[0]); }}>
+                            <ImagePlus size={18} style={{ verticalAlign: "-3px", marginRight: 6 }} /> Bild ablegen oder auswählen
+                          </div>
+                        )}
+                        <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => onFile(e.target.files[0])} />
+                      </div>
+                    </SectionCard>
+
+                    <SectionCard number="2" title="Zielgruppe beschreiben">
+                      <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: -4, marginBottom: 12 }}>
+                        Diese Angaben bestimmen den Soll-Vorschlag.
+                      </p>
+                      <div className="nl-audience-grid">
+                        <input className="nl-input" value={audience.wer} onChange={(e) => setAudience({ ...audience, wer: e.target.value })} placeholder="Wer kauft?" />
+                        <input className="nl-input" value={audience.gefuehl} onChange={(e) => setAudience({ ...audience, gefuehl: e.target.value })} placeholder="Vorkauf-Gefühl?" />
+                        <input className="nl-input" value={audience.kategorie} onChange={(e) => setAudience({ ...audience, kategorie: e.target.value })} placeholder="Kategorie" />
+                        <input className="nl-input" value={audience.niveau} onChange={(e) => setAudience({ ...audience, niveau: e.target.value })} placeholder="Preis-/Statusniveau" />
+                      </div>
+                    </SectionCard>
+
+                    <SectionCard number="3" title="Prior der Zielgruppe" optional>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
                         <button
                           className="nl-btn ghost sm"
@@ -1443,17 +1476,23 @@ export default function App() {
                           </div>
                         );
                       })()}
-                    </div>
-                    <button className="nl-btn" onClick={diagnose} disabled={!canDiagnose}>
-                      {aiState === "loading" ? <><span className="nl-spin dark" /> Claude analysiert …</> : <><Sparkles size={15} /> Diagnose starten</>}
-                    </button>
-                    {aiState === "error" && (
-                      <div style={{ marginTop: 12, fontSize: 13, color: "#b4232a", display: "flex", gap: 7, alignItems: "flex-start" }}>
-                        <AlertCircle size={15} style={{ flex: "none", marginTop: 1 }} /><span>{aiError}. Du kannst die Werte rechts auch manuell setzen.</span>
-                      </div>
-                    )}
+                    </SectionCard>
+
+                    <SectionCard number="4" title="Diagnose starten">
+                      <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: -4, marginBottom: 12 }}>
+                        Claude analysiert Material + Zielgruppe und schlägt Ist-System und Soll-System vor.
+                      </p>
+                      <button className="nl-btn" onClick={diagnose} disabled={!canDiagnose}>
+                        {aiState === "loading" ? <><span className="nl-spin dark" /> Claude analysiert …</> : <><Sparkles size={15} /> Diagnose starten</>}
+                      </button>
+                      {aiState === "error" && (
+                        <div style={{ marginTop: 12, fontSize: 13, color: "#b4232a", display: "flex", gap: 7, alignItems: "flex-start" }}>
+                          <AlertCircle size={15} style={{ flex: "none", marginTop: 1 }} /><span>{aiError}. Du kannst die Werte rechts auch manuell setzen.</span>
+                        </div>
+                      )}
+                    </SectionCard>
                   </div>
-                  <div style={{ position: "sticky", top: 18 }}>
+                  <div className="nl-sticky-col">
                     <div className="nl-card" style={{ padding: 16 }}>
                       <PerceptualField point={diag.point} highlight={diag.primary} target={ai ? target : null} />
                       {ai ? (
