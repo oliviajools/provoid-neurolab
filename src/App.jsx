@@ -546,6 +546,52 @@ const CSS = `
 ---------------------------------------------------------------------------- */
 const INTRO_SLIDES = [
   {
+    eyebrow: "Willkommen · Was NeuroLab ermöglicht",
+    heading: "Markenwirkung verstehen, statt raten",
+    body: "NeuroLab übersetzt Werbung, Claims und Bildmaterial in eine klare emotionale Diagnose. Du erfährst, welches der vier kaufrelevanten Systeme aktiviert wird, wo das Reiz-Profil abweicht und wie du Kreative systematisch kalibrierst. So wird Marketing zur testbaren Hypothese — messbar, iterierbar und wirkungsvoller.",
+    pills: [
+      { label: "Emotionale Diagnose", color: "#8B5CF6" },
+      { label: "Reiz-Profil", color: "#8B5CF6" },
+      { label: "KI-Optimierung", color: "rgba(255,255,255,.25)" },
+    ],
+    accent: "#8B5CF6",
+    graphic: (
+      <svg width="300" height="300" viewBox="0 0 300 300">
+        {/* central NeuroLab processing core */}
+        <circle cx="150" cy="150" r="68" fill="none" stroke="#8B5CF6" strokeWidth="1.5" strokeOpacity=".35" />
+        <circle cx="150" cy="150" r="48" fill="#8B5CF6" fillOpacity=".08" stroke="#8B5CF6" strokeWidth="1.2" />
+        <text x="150" y="154" textAnchor="middle" fill="#8B5CF6" fontSize="11" fontFamily="'IBM Plex Mono',monospace" fontWeight="600">NeuroLab</text>
+
+        {/* input: brand material */}
+        <rect x="28" y="118" width="72" height="64" rx="8" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.2)" strokeWidth="1" />
+        <text x="64" y="142" textAnchor="middle" fill="rgba(255,255,255,.5)" fontSize="8" fontFamily="'IBM Plex Mono',monospace">Material</text>
+        <text x="64" y="158" textAnchor="middle" fill="rgba(255,255,255,.5)" fontSize="8" fontFamily="'IBM Plex Mono',monospace">+ Zielgruppe</text>
+
+        {/* arrow input → core */}
+        <line x1="100" y1="150" x2="114" y2="150" stroke="#8B5CF6" strokeWidth="2" strokeOpacity=".7" />
+        <polygon points="114,146 124,150 114,154" fill="#8B5CF6" fillOpacity=".7" />
+
+        {/* output: four emotion systems */}
+        {[
+          { id: "SEEKING", c: "#10B981", y: 78 },
+          { id: "LUST", c: "#E11D48", y: 122 },
+          { id: "CARE", c: "#0EA5E9", y: 178 },
+          { id: "PLAY", c: "#F59E0B", y: 222 },
+        ].map(({ id, c, y }) => (
+          <g key={id}>
+            {/* connection from core */}
+            <line x1="194" y1="150" x2="218" y2={y} stroke={c} strokeWidth="1" strokeOpacity=".4" />
+            <circle cx="236" cy={y} r="18" fill={c} fillOpacity=".12" stroke={c} strokeWidth="1.5" />
+            <text x="236" y={y + 1} textAnchor="middle" dominantBaseline="middle" fill={c} fontSize="7.5" fontFamily="'IBM Plex Mono',monospace" fontWeight="700">{id}</text>
+          </g>
+        ))}
+
+        {/* output label */}
+        <text x="236" y="264" textAnchor="middle" fill="rgba(255,255,255,.25)" fontSize="9" fontFamily="'IBM Plex Mono',monospace">4 kaufrelevante Systeme</text>
+      </svg>
+    ),
+  },
+  {
     eyebrow: "Das Fundament · Free Energy Principle",
     heading: "Dein Gehirn ist eine Vorhersage\u00admaschine",
     body: "Das Gehirn generiert laufend Vorhersagen über die Welt — und minimiert den Unterschied zwischen Erwartung und Realität. Karl Friston nennt das \u201eFreie Energie\". Jeder Reiz, den deine Marke sendet, wird mit der gespeicherten Erwartung abgeglichen. Die Differenz ist das Signal, das Aufmerksamkeit, Emotion und Entscheidung treibt.",
@@ -814,7 +860,7 @@ function IntroScreen({ onDone }) {
           <div className="nl-intro-cols">
             <div>
               <div className="nl-intro-eyebrow" style={{ color: s.accent }}>{s.eyebrow}</div>
-              <h2 className="nl-intro-h" style={{ background: `linear-gradient(135deg, #f0f4f8 40%, ${s.accent})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              <h2 className="nl-intro-h" style={{ backgroundImage: `linear-gradient(135deg, #f0f4f8 40%, ${s.accent})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                 {s.heading}
               </h2>
               <p className="nl-intro-body">{s.body}</p>
