@@ -548,7 +548,7 @@ const INTRO_SLIDES = [
   {
     eyebrow: "Willkommen · Was NeuroLab ermöglicht",
     heading: "Markenwirkung verstehen, statt raten",
-    body: "NeuroLab übersetzt Werbung, Claims und Bildmaterial in eine klare emotionale Diagnose. Du erfährst, welches der vier kaufrelevanten Systeme aktiviert wird, wo das Reiz-Profil abweicht und wie du Kreative systematisch kalibrierst. So wird Marketing zur testbaren Hypothese — messbar, iterierbar und wirkungsvoller.",
+    body: "NeuroLab übersetzt Werbung, Claims und Bildmaterial in eine klare emotionale Diagnose. Du erfährst, welches der vier kaufrelevanten Systeme aktiviert wird, wo das Reiz-Profil abweicht und wie du Kampagnen und Posts systematisch kalibrierst. So wird Marketing zur testbaren Hypothese — messbar, iterierbar und wirkungsvoller.",
     pills: [
       { label: "Emotionale Diagnose", color: "#8B5CF6" },
       { label: "Reiz-Profil", color: "#8B5CF6" },
